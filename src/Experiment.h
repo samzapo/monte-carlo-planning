@@ -10,6 +10,9 @@
 #define _Experiment_h
 
 #include "Random.h"
+#include <map>
+#include <vector>
+#include <Ravelin/VectorNd.h>
 
 class Experiment{
 public:
@@ -18,19 +21,15 @@ public:
   };
   
   void sample(unsigned index);
-  
+  void export_data();
 private:
   unsigned num_samples;
   
-  std::map<
-          std::string,
-          std::vector<Ravelin::VectorNd>
-          > data;
+  std::map< std::string,
+            std::vector<Ravelin::VectorNd> > data;
   
-  std::map<
-            std::string,
-            boost::shared_ptr<Generator>
-          > parameter_generator;
+  std::map< std::string,
+            boost::shared_ptr<Generator> > parameter_generator;
   
   void init(std::string& parameters);
 };

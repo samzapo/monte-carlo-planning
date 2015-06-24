@@ -12,8 +12,8 @@
 #include <random>
 
 class Generator {
-  static std::default_random_engine generator;
-  static std::normal_distribution<double> distribution;
+  std::default_random_engine generator;
+  std::normal_distribution<double> distribution;
   double min;
   double max;
 public:
@@ -26,12 +26,12 @@ public:
   distribution((min + max) / 2, (max - min) / 6), min(min), max(max)
   {}
   
-  double operator ()() {
+  double generate() {
     double number;
     do{
       number = this->distribution(generator);
-    } while (number < this->min && number > this->max)
-      return number;
+    } while (number < this->min && number > this->max);
+    return number;
   }
 };
 

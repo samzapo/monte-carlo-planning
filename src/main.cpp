@@ -33,11 +33,9 @@ void get_options(int argc, char* argv[]){
   
   // Print Help info -- all options descriptions
   if (vm.count("help")) {
-    cout << desc << "\n";
-    return 1;
+    std::cout << desc << "\n";
+    exit(1);
   }
-  
-  return vm;
 }
 
 int main(int argc, char* argv[])
@@ -75,7 +73,7 @@ int main(int argc, char* argv[])
    * More about boost::bind: "http://www.boost.org/doc/libs/1_54_0/libs/bind/bind.html#with_functions"
    */
   for (unsigned i=0; i<NUM_SAMPLES; i++)
-    ioService.post(boost::bind(experiment.sample,_1)(i));
+    ioService.post(boost::bind(&Experiment::sample,experiment,i));
   
   /*
    * This will stop the ioService processing loop. Any tasks
@@ -90,5 +88,7 @@ int main(int argc, char* argv[])
    */
   threadpool.join_all();
   
-  experiment.compile_data();
+  experiment.export_data();
+  
+  return 0;
 }

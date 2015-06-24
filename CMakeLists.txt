@@ -8,9 +8,6 @@ include (CheckLibraryExists)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 # setup include directories
-include_directories("include")
-set(PROJECT_SRC_DIR ./src)
-
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 
 #find BOOST libraries
@@ -20,9 +17,9 @@ link_directories(${BOOST_LIBRARY_DIRS})
 include_directories(${BOOST_INCLUDE_DIR})
 
 #add ravelin
-find_package(Pacer REQUIRED)
-link_directories(${PACER_LIBRARY_DIR})
-include_directories(${PACER_INCLUDE_DIR})
+#find_package(Pacer REQUIRED)
+#link_directories(${PACER_LIBRARY_DIR})
+#include_directories(${PACER_INCLUDE_DIR})
 
 #add ravelin
 find_package(Ravelin REQUIRED)
@@ -54,10 +51,8 @@ link_directories(
                   )
 
 set(SOURCES
-            main.cpp
-            Task.cpp
-            Thread.cpp
-            ThreadPool.cpp
+            src/main.cpp
+            src/Experiment.cpp
            )
 
 add_library(${PROJECT_NAME} ${SOURCES})

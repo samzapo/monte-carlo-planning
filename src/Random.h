@@ -9,7 +9,7 @@
 #ifndef _Random_h
 #define _Random_h
 
-/*
+
 #include <random>
 
 class Generator {
@@ -35,22 +35,10 @@ public:
     return number;
   }
 };
-*/
 
-#include <gsl_rng.h>
 
-gsl_rng * r =  gsl_rng_alloc( gsl_rng_default );
-if( r == NULL ) std::cout << "failed to initialize rng\n";
-gsl_rng_set( r, seed );
-
-// generate command values from gaussian
-const double SIGMA = GAUSSIAN_STDDEV;
-const double MU = GAUSSIAN_MEAN;
-for( unsigned i = 0; i < 3; i++ ) {
-  walk_force[i] = ;
-  walk_torque[i] = 0.0;
-}
-
+/*
+#include <gsl/gsl_rng.h>
 // free the random number generator
 
 
@@ -92,5 +80,5 @@ public:
     return number;
   }
 };
-
+*/
 #endif

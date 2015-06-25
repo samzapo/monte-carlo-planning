@@ -1,4 +1,12 @@
 #include "Experiment.h"
+/*
+ * Moby Control Code
+ */
+#include <Moby/Simulator.h>
+
+extern bool init(int argc, char** argv,boost::shared_ptr<Moby::Simulator>& s);
+extern bool step(boost::shared_ptr<Moby::Simulator>& s);
+extern void end();
 
 /*
  *  Init and Data collection
@@ -7,22 +15,102 @@
 typedef std::map<std::string,std::vector<Ravelin::VectorNd> > DataMap;
 typedef std::map<std::string,boost::shared_ptr<Generator> > ParamMap;
 
+char *convert(const std::string & s)
+{
+  char *pc = new char[s.size()+1];
+  std::strcpy(pc, s.c_str());
+  return pc;
+}
+
 void Experiment::sample(unsigned index){
+  /*
+   *  Moby Initialization
+   */
+  boost::shared_ptr<Moby::Simulator> sim;
+  // run sample
+  std::vector<std::string> moby_options;
+  moby_options.push_back("moby-driver");
+  // Max time is 0.3 seconds
+  moby_options.push_back("-mt=0.3");
+  // OSG output last frame
+  moby_options.push_back("-y=osg");
+  moby_options.push_back("-v=-1");
+  // XML output last frame
+  moby_options.push_back("-w=-1");
+  moby_options.push_back("model.xml");
+  std::vector<char*>  argv;
+  std::transform(argv.begin(), argv.end(), std::back_inserter(argv), convert);
+  
+  // apply options and INIT moby
+  init(argv.size(),&argv[0],sim);
+  
+  // clean up argv
+  for ( size_t i = 0 ; i < argv.size() ; i++ )
+    delete [] argv[i];
+  
+  // get event driven simulation and dynamics bodies
+  boost::shared_ptr<Moby::EventDrivenSimulator>
+  eds = boost::dynamic_pointer_cast<Moby::EventDrivenSimulator>( sim );
+  
+  Moby::RCArticulatedBodyPtr robot;
+  Moby::RigidBodyPtr environment;
+  
+  BOOST_FOREACH(Moby::DynamicBodyPtr db, eds->get_dynamic_bodies()){
+    if(!robot)
+      robot = boost::dynamic_pointer_cast<Moby::RCArticulatedBody>(db);
+    if(!environment)
+      environment = boost::dynamic_pointer_cast<Moby::RigidBodyPtr>(db);
+  }
+  // Fail if moby was inited wrong
+  if(!robot)
+    throw std::runtime_error("Could not find robot");
+  if(!environment)
+    throw std::runtime_error("Could not find environment");
+  
+  /*
+   *  Data Collection Initialization
+   */
   std::map< std::string,Ravelin::VectorNd> local_data;
   
-  // Set Parameters
+  /*
+   *  Parameter Initialization
+   */
   std::map<std::string,double> params;
   for(ParamMap::iterator it = parameter_generator.begin();
       it != parameter_generator.end();it++){
     params[it->first] = it->second->generate();
   }
   
-  // run sample
+  /*
+   *  Parameter Application
+   */
+  std::cout << "Sample : " << index << "," << num_samples << std::endl;
+  for(ParamMap::iterator it = parameter_generator.begin();
+      it != parameter_generator.end();it++){
+    // Reference (key,value) pair
+    std::string& key = it->first;
+    double& value = it->second;
+    
+    std::cout << "\t( " << key << " , " << value << " )" << std::endl;
+    
+//    if(key.compare("") == 0){
+//      
+//    }
+  }
   
+  /*
+   *  Running experiment
+   */
+  bool in_progress = true;
+  while (in_progress) {
+    in_progress = step(sim);
+  }
   
+  /*
+   *  Collecting final data
+   */
   
-  // collect sample data;
-//  local_data["q"] = q;
+  //  local_data["q"] = q;
 //  local_data["qd"] = qd;
   
   // Set data into data map:
@@ -30,6 +118,9 @@ void Experiment::sample(unsigned index){
       it != data.end();it++){
     it->second[index] = local_data[it->first];
   }
+  
+  // Clean up Moby
+  end();
 }
 
 #include <string>

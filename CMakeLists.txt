@@ -53,6 +53,7 @@ link_directories(
 set(SOURCES
             src/main.cpp
             src/Experiment.cpp
+            src/Moby.cpp
            )
 
 add_library(${PROJECT_NAME} ${SOURCES})

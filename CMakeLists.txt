@@ -8,11 +8,12 @@ include (CheckLibraryExists)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 # setup include directories
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+#set(CMAKE_CXX_FLAGS "-lboost_program_options")
 
 #find BOOST libraries
 set(Boost_ADDITIONAL_VERSIONS "1.55.0" "1.56.0")
-find_package(Boost REQUIRED)
+find_package(Boost COMPONENTS program_options thread REQUIRED)
 link_directories(${BOOST_LIBRARY_DIRS})
 include_directories(${BOOST_INCLUDE_DIR})
 
@@ -56,14 +57,14 @@ set(SOURCES
             src/Moby.cpp
            )
 
-add_library(${PROJECT_NAME} ${SOURCES})
+         #add_library(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 # LibXml2
 IF(LIBXML2_FOUND)
   target_link_libraries (${PROJECT_NAME} ${LIBXML2_LIBRARIES})
 ENDIF(LIBXML2_FOUND)
 
-set(REQLIBS ${MOBY_LIBRARIES} ${RAVELIN_LIBRARIES} ${BOOST_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${MOBY_LIBRARIES} ${RAVELIN_LIBRARIES} ${BOOST_LIBRARIES} ${BOOST_PROGRAM_OPTIONS_LIBRARY} ${BOOST_THREAD_LIBRARY} gsl boost_program_options boost_system boost_thread)
 
-target_link_libraries(${PROJECT_NAME} ${REQLIBS})
 set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)

@@ -12,7 +12,7 @@
 #include "Random.h"
 #include <map>
 #include <vector>
-#include <Ravelin/VectorNd.h>
+#include <boost/shared_ptr.hpp>
 
 class Experiment{
 public:
@@ -26,7 +26,7 @@ private:
   unsigned num_samples;
   
   std::map< std::string,
-            std::vector<Ravelin::VectorNd> > data;
+            std::vector<std::vector<double> > > data;
   
   std::map< std::string,
             boost::shared_ptr<Generator> > parameter_generator;

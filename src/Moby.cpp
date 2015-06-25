@@ -164,8 +164,6 @@ double get_current_time()
   return (double) t.tv_sec + (double) t.tv_usec * MICROSEC;
 }
 
-char* THREED_EXT = "osg";
-
 /// runs the simulator and updates all transforms
 bool step(boost::shared_ptr<Simulator>& s)
 {
@@ -243,12 +241,14 @@ bool step(boost::shared_ptr<Simulator>& s)
       sprintf(buffer, "driver.out-%08u-%f.xml", ++LAST_PICKLE, s->current_time);
       XMLWriter::serialize_to_xml(std::string(buffer), s);
     }
+#ifdef USE_OSG
     if(THREED_IVAL == -1){
       // write the file (fails silently)
       char buffer[128];
       sprintf(buffer, "driver.out-%08u-%f.%s", ++LAST_3D_WRITTEN, s->current_time, THREED_EXT);
       osgDB::writeNodeFile(*MAIN_GROUP, std::string(buffer));
     }
+#endif
     return false;
   }
 #ifdef USE_OSG
@@ -261,6 +261,52 @@ bool step(boost::shared_ptr<Simulator>& s)
  *  INITING MOBY
  */
 
+void read_plugin(const char* filename)
+{
+  // attempt to read the file
+  void* plugin = dlopen(filename, RTLD_LAZY);
+  if (!plugin)
+  {
+    // get the error string, in case we need it
+    char* dlerror_str = dlerror();
+
+    // attempt to use the plugin path
+    char* plugin_path = getenv("MOBY_PLUGIN_PATH");
+    if (plugin_path)
+    {
+      // get the plugin path and make sure it has a path string at the end
+      std::string plugin_path_str(plugin_path);
+      if (plugin_path_str.at(plugin_path_str.size()-1) != '/')
+        plugin_path_str += '/';
+
+      // concatenate
+      plugin_path_str += filename;
+
+      // attempt to re-open the plugin
+      plugin = dlopen(plugin_path_str.c_str(), RTLD_LAZY);
+    }
+
+    // check whether the plugin was successfully loaded
+    if (!plugin)
+    { 
+      std::cerr << "driver: failed to read plugin from " << filename << std::endl;
+      std::cerr << "  " << dlerror_str << std::endl;
+      exit(-1);
+    }
+  }
+  handles.push_back(plugin);
+
+  // attempt to load the initializer
+  dlerror();
+  INIT.push_back((init_t) dlsym(plugin, "init"));
+  const char* dlsym_error = dlerror();
+  if (dlsym_error)
+  {
+    std::cerr << "driver warning: cannot load symbol 'init' from " << filename << std::endl;
+    std::cerr << "        error follows: " << std::endl << dlsym_error << std::endl;
+    exit(-1);
+  }
+}
 
 /// Adds lights to the scene when no scene background file specified
 void add_lights()

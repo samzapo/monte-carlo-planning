@@ -2,7 +2,10 @@
 /*
  * Moby Control Code
  */
-#include <Moby/Simulator.h>
+#include <Moby/EventDrivenSimulator.h>
+#include <Moby/RCArticulatedBody.h>
+#include <stdio.h>
+#include <string.h>
 
 extern bool init(int argc, char** argv,boost::shared_ptr<Moby::Simulator>& s);
 extern bool step(boost::shared_ptr<Moby::Simulator>& s);
@@ -12,13 +15,13 @@ extern void end();
  *  Init and Data collection
  */
 
-typedef std::map<std::string,std::vector<Ravelin::VectorNd> > DataMap;
+typedef std::map<std::string,std::vector<std::vector<double> > > DataMap;
 typedef std::map<std::string,boost::shared_ptr<Generator> > ParamMap;
 
 char *convert(const std::string & s)
 {
   char *pc = new char[s.size()+1];
-  std::strcpy(pc, s.c_str());
+  strcpy(pc, s.c_str());
   return pc;
 }
 
@@ -42,7 +45,7 @@ void Experiment::sample(unsigned index){
   std::transform(argv.begin(), argv.end(), std::back_inserter(argv), convert);
   
   // apply options and INIT moby
-  init(argv.size(),&argv[0],sim);
+  ::init(argv.size(),&argv[0],sim);
   
   // clean up argv
   for ( size_t i = 0 ; i < argv.size() ; i++ )
@@ -59,7 +62,7 @@ void Experiment::sample(unsigned index){
     if(!robot)
       robot = boost::dynamic_pointer_cast<Moby::RCArticulatedBody>(db);
     if(!environment)
-      environment = boost::dynamic_pointer_cast<Moby::RigidBodyPtr>(db);
+      environment = boost::dynamic_pointer_cast<Moby::RigidBody>(db);
   }
   // Fail if moby was inited wrong
   if(!robot)
@@ -70,7 +73,7 @@ void Experiment::sample(unsigned index){
   /*
    *  Data Collection Initialization
    */
-  std::map< std::string,Ravelin::VectorNd> local_data;
+  std::map< std::string,std::vector<double> > local_data;
   
   /*
    *  Parameter Initialization
@@ -85,11 +88,11 @@ void Experiment::sample(unsigned index){
    *  Parameter Application
    */
   std::cout << "Sample : " << index << "," << num_samples << std::endl;
-  for(ParamMap::iterator it = parameter_generator.begin();
-      it != parameter_generator.end();it++){
+  for(std::map<std::string,double>::iterator it = params.begin();
+      it != params.end();it++){
     // Reference (key,value) pair
-    std::string& key = it->first;
-    double& value = it->second;
+    const std::string& key = it->first;
+    const double& value = it->second;
     
     std::cout << "\t( " << key << " , " << value << " )" << std::endl;
     
@@ -136,9 +139,9 @@ void Experiment::export_data(){
     int n = it->second.size();
     // Index sample
     for (size_t i = 0; i < n;i++){
-      Ravelin::VectorNd& v = it->second[i];
+      std::vector<double>& v = it->second[i];
 
-      int m = v.rows();
+      int m = v.size();
       // Index element
       for (int j = 0; j < m;j++){
         if(j==0)
@@ -156,14 +159,16 @@ void Experiment::export_data(){
 #include <boost/algorithm/string.hpp>
 
 void Experiment::init(std::string& parameters){
-  
+ 
   // Initialize Parameter distributions
   std::vector<std::string> params;
-  boost::split(params, parameters, boost::is_any_of(";"));
+  std::string delim1 = ";";
+  boost::split(params, parameters, boost::is_any_of(delim1));
   size_t N = params.size();
   for (size_t i=0;i<N;i++) {
     std::vector<std::string> options;
-    boost::split(options, params, boost::is_any_of(","));
+    std::string delim2 = ",";
+    boost::split(options, params[i], boost::is_any_of(delim2));
     std::string param_name = options[0];
     double xmin,xmax,mu,sigma;
     if(options.size() == 5){
@@ -184,6 +189,6 @@ void Experiment::init(std::string& parameters){
   }
   
   /// Data collection should be hard-coded
-  data["q"] = std::vector<Ravelin::VectorNd>(num_samples);
-  data["qd"] = std::vector<Ravelin::VectorNd>(num_samples);
+  data["q"] = std::vector<std::vector< double > >(num_samples);
+  data["qd"] = std::vector<std::vector< double > >(num_samples);
 }

@@ -11,6 +11,7 @@
  *****************************************************************************/
 
 #include "Moby.h"
+#include "Random.h"
 
 using boost::shared_ptr;
 using namespace Ravelin;
@@ -316,7 +317,7 @@ void process_window_tag(shared_ptr<const Moby::XMLTree> node)
       if(PICKLE_IVAL == 0){
         // write the file (fails silently)
         char buffer[128];
-        sprintf(buffer, "driver.out-%08u-%f.xml", ++LAST_PICKLE, s->current_time);
+        sprintf(buffer, "state-%f-sample%d.xml", s->current_time, index);
         XMLWriter::serialize_to_xml(std::string(buffer), s);
         std::cout << "output XML at END" << std::endl;
       }
@@ -324,7 +325,7 @@ void process_window_tag(shared_ptr<const Moby::XMLTree> node)
       if(THREED_IVAL == 0){
         // write the file (fails silently)
         char buffer[128];
-        sprintf(buffer, "driver.out-%08u-%f.%s", ++LAST_3D_WRITTEN, s->current_time, THREED_EXT);
+        sprintf(buffer, "state-%f-sample%d.%s", s->current_time, index, THREED_EXT);
         osgDB::writeNodeFile(*MAIN_GROUP, std::string(buffer));
         std::cout << "output 3D at END" << std::endl;
       }

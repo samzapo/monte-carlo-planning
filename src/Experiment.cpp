@@ -39,13 +39,13 @@ void Experiment::sample(unsigned index){
   argvs.push_back("-mt="+DURATION_INPUT);
   argvs.push_back("-s="+STEP_SIZE_INPUT);
   // OSG output last frame
-  argvs.push_back("-y=osg");
-  argvs.push_back("-v=0");
+  //argvs.push_back("-y=osg");
+  //argvs.push_back("-v=0");
   // XML output last frame
-  argvs.push_back("-w=0");
+  //argvs.push_back("-w=0");
   argvs.push_back("-p=/home/samzapo/Projects/Pacer/build/example/interfaces/libPacerMobyPlugin.so");
-  //argvs.push_back("model.xml");
-  argvs.push_back("start.xml");
+  argvs.push_back("model.xml");
+  //argvs.push_back("start.xml");
   std::vector<char*>  argv;
   std::transform(argvs.begin(), argvs.end(), std::back_inserter(argv), convert);
   
@@ -104,9 +104,27 @@ void Experiment::sample(unsigned index){
     
     std::cout << "\t( " << key << " , " << value << " )" << std::endl;
     
-//    if(key.compare("") == 0){
-//      
-//    }
+    if(key.compare("x") == 0){
+      Ravelin::VectorNd q;
+      robot->get_generalized_coordinates(Moby::DynamicBody::eEuler,q);
+      int i = q.rows()- 1 - 4 - 2;
+      q[i] = q[i] + value;
+      robot->set_generalized_coordinates(Moby::DynamicBody::eEuler,q);
+    }
+    else if(key.compare("y") == 0){
+      Ravelin::VectorNd q;
+      robot->get_generalized_coordinates(Moby::DynamicBody::eEuler,q);
+      int i = q.rows()- 1 - 4 - 1;
+      q[i] = q[i] + value;
+      robot->set_generalized_coordinates(Moby::DynamicBody::eEuler,q);
+    }
+    else if(key.compare("z") == 0){
+      Ravelin::VectorNd q;
+      robot->get_generalized_coordinates(Moby::DynamicBody::eEuler,q);
+      int i = q.rows()- 1 - 4;
+      q[i] = q[i] + value;
+      robot->set_generalized_coordinates(Moby::DynamicBody::eEuler,q);
+    }
   }
   
   /*

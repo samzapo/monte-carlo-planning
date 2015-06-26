@@ -35,6 +35,7 @@
 #include <Moby/Simulator.h>
 #include <Moby/RigidBody.h>
 #include <Moby/EventDrivenSimulator.h>
+  
 
 class MobyDriver{
 public:
@@ -227,14 +228,6 @@ private:
    * STEPPING
    */
   
-  /// Gets the current time (as a floating-point number)
-  double get_current_time()
-  {
-    const double MICROSEC = 1.0/1000000;
-    timeval t;
-    gettimeofday(&t, NULL);
-    return (double) t.tv_sec + (double) t.tv_usec * MICROSEC;
-  }
   
   /*
    *  INITING MOBY

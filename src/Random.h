@@ -10,6 +10,7 @@
 #define _Random_h
 #include <stdio.h>
 #include <iostream>
+#include <sys/time.h>
 
 /*
 #include <random>
@@ -44,6 +45,16 @@ public:
 #include <gsl/gsl_randist.h>
 // free the random number generator
 
+/// Gets the current time (as a floating-point number)
+ static double get_current_time()
+{
+    //const double MICROSEC = 1.0/1000000;
+    timeval t;
+    gettimeofday(&t, NULL);
+    //double stime = (double) t.tv_sec + (double) t.tv_usec * MICROSEC;
+    //unsigned long utime = stime * 1000000;
+    return (unsigned long) t.tv_sec * 1000000 + (unsigned long) t.tv_usec;
+}
 
 
 class Generator {
@@ -57,6 +68,7 @@ public:
   Generator(double mean, double stddev, double xmin, double xmax):
   min(xmin),max(xmax),mu(mean),sigma(stddev)
   {
+    seed = get_current_time();
     generator =  gsl_rng_alloc( gsl_rng_default );
     if( generator == NULL ) std::cout << "failed to initialize rng\n";
     gsl_rng_set( generator, seed );
@@ -66,6 +78,7 @@ public:
   Generator(double xmin, double xmax):
   min(xmin),max(xmax),mu((xmin + xmax) / 2),sigma((xmax - xmin) / 6)
   {
+    seed = get_current_time();
     generator =  gsl_rng_alloc( gsl_rng_default );
     if( generator == NULL ) std::cout << "failed to initialize rng\n";
     gsl_rng_set( generator, seed );

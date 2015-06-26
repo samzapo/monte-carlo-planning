@@ -82,7 +82,7 @@ public:
     LAST_PICKLE = -1;
     
     /// Extension/format for 3D outputs (default=Wavefront obj)
-    THREED_EXT = "obj";
+//    THREED_EXT = "obj";
     
     /// Determines whether to update graphics (false by default, but certain
     /// options will set to true)
@@ -166,7 +166,7 @@ private:
   unsigned LAST_PICKLE;
   
   /// Extension/format for 3D outputs (default=Wavefront obj)
-  char* THREED_EXT;
+  char THREED_EXT[5];
   
   /// Determines whether to update graphics (false by default, but certain
   /// options will set to true)
@@ -261,7 +261,7 @@ private:
   
 public:
   /// runs the simulator and updates all transforms
-  bool step(boost::shared_ptr<Moby::Simulator>& s);
+  bool step(boost::shared_ptr<Moby::Simulator>& s, unsigned index);
   
   // where everything begins...
   bool init(int argc, char** argv,boost::shared_ptr<Moby::Simulator>& s);

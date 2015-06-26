@@ -16,7 +16,7 @@ using boost::shared_ptr;
 using namespace Ravelin;
 using namespace Moby;
 
-
+/*
 /// processes the 'camera' tag
 void process_camera_tag(shared_ptr<const Moby::XMLTree> node)
 {
@@ -54,7 +54,6 @@ void process_camera_tag(shared_ptr<const Moby::XMLTree> node)
   }
 #endif
 }
-
 /// processes the 'window' tag
 void process_window_tag(shared_ptr<const Moby::XMLTree> node)
 {
@@ -80,6 +79,7 @@ void process_window_tag(shared_ptr<const Moby::XMLTree> node)
   viewer_pointer->setUpViewInWindow(loc[0], loc[1], size[0], size[1]);
 #endif
 }
+*/
 
   /*
    *  INITING MOBY
@@ -229,25 +229,25 @@ void process_window_tag(shared_ptr<const Moby::XMLTree> node)
     }
     
     // process tags
-    if (ONSCREEN_RENDER){
-      process_tag("window", driver_tree, process_window_tag);
-      process_tag("camera", driver_tree, process_camera_tag);
-    }
+   // if (ONSCREEN_RENDER){
+   //   process_tag("window", driver_tree, process_window_tag);
+   //   process_tag("camera", driver_tree, process_camera_tag);
+   // }
     
     // change back to current directory
     chdir(cwd.get());
   }
   
   /// runs the simulator and updates all transforms
-  bool MobyDriver::step(boost::shared_ptr<Simulator>& s)
+  bool MobyDriver::step(boost::shared_ptr<Simulator>& s, unsigned index)
   {
   #ifdef USE_OSG
-    if (ONSCREEN_RENDER)
-    {
-      if (viewer.done())
-        break;
-      viewer.frame();
-    }
+  //  if (ONSCREEN_RENDER)
+  //  {
+  //    if (viewer.done())
+  //      break;
+  //    viewer.frame();
+  //  }
   #endif
     // get the simulator pointer
   //  boost::shared_ptr<Simulator> s = *(boost::shared_ptr<Simulator>*) arg;
@@ -260,10 +260,12 @@ void process_window_tag(shared_ptr<const Moby::XMLTree> node)
     std::cout << "iteration: " << ITER << "  simulation time: " << s->current_time << std::endl;
   #endif
     
-    // only update the graphics if it is necessary; update visualization first
-    // in case simulator takes some time to perform first step
-    //  if (UPDATE_GRAPHICS)
-    //    s->update_visualization();
+  // only update the graphics if it is necessary; update visualization first
+  // in case simulator takes some time to perform first step
+  if (UPDATE_GRAPHICS){
+    std::cout << "Update Graphics" << std::endl;
+    s->update_visualization();
+  }
     
     // output the image, if desired
   #ifdef USE_OSG
@@ -275,8 +277,9 @@ void process_window_tag(shared_ptr<const Moby::XMLTree> node)
       {
         // write the file (fails silently)
         char buffer[128];
-        sprintf(buffer, "driver.out-%08u-%f.%s", ++LAST_3D_WRITTEN, s->current_time, THREED_EXT);
+        sprintf(buffer, "driver.out-%08u-%f-sample%d.%s", ++LAST_3D_WRITTEN, s->current_time, index,THREED_EXT);
         osgDB::writeNodeFile(*MAIN_GROUP, std::string(buffer));
+        std::cout << "output 3D at STEP" << std::endl;
       }
     }
   #endif
@@ -289,8 +292,9 @@ void process_window_tag(shared_ptr<const Moby::XMLTree> node)
       {
         // write the file (fails silently)
         char buffer[128];
-        sprintf(buffer, "driver.out-%08u-%f.xml", ++LAST_PICKLE, s->current_time);
+        sprintf(buffer, "driver.out-%08u-%f-sample%d.xml", ++LAST_PICKLE, s->current_time, index);
         XMLWriter::serialize_to_xml(std::string(buffer), s);
+        std::cout << "output XML at STEP" << std::endl;
       }
     }
     
@@ -314,6 +318,7 @@ void process_window_tag(shared_ptr<const Moby::XMLTree> node)
         char buffer[128];
         sprintf(buffer, "driver.out-%08u-%f.xml", ++LAST_PICKLE, s->current_time);
         XMLWriter::serialize_to_xml(std::string(buffer), s);
+        std::cout << "output XML at END" << std::endl;
       }
   #ifdef USE_OSG
       if(THREED_IVAL == 0){
@@ -321,12 +326,13 @@ void process_window_tag(shared_ptr<const Moby::XMLTree> node)
         char buffer[128];
         sprintf(buffer, "driver.out-%08u-%f.%s", ++LAST_3D_WRITTEN, s->current_time, THREED_EXT);
         osgDB::writeNodeFile(*MAIN_GROUP, std::string(buffer));
+        std::cout << "output 3D at END" << std::endl;
       }
   #endif
       return false;
     }
   #ifdef USE_OSG
-    usleep(DYNAMICS_FREQ);
+    //usleep(DYNAMICS_FREQ);
   #endif
     return true;
   }

@@ -43,7 +43,9 @@ void Experiment::sample(unsigned index){
   argvs.push_back("-v=0");
   // XML output last frame
   argvs.push_back("-w=0");
-  argvs.push_back("model.xml");
+  argvs.push_back("-p=/home/samzapo/Projects/Pacer/build/example/interfaces/libPacerMobyPlugin.so");
+  //argvs.push_back("model.xml");
+  argvs.push_back("start.xml");
   std::vector<char*>  argv;
   std::transform(argvs.begin(), argvs.end(), std::back_inserter(argv), convert);
   
@@ -112,15 +114,21 @@ void Experiment::sample(unsigned index){
    */
   bool in_progress = true;
   while (in_progress) {
-    in_progress = moby_driver.step(sim);
+    in_progress = moby_driver.step(sim,index);
   }
   
   /*
    *  Collecting final data
    */
+ 
+  Ravelin::VectorNd q,qd;
+  robot->get_generalized_coordinates(Moby::DynamicBody::eEuler,q);
+  std::cout << "q = " << q << std::endl;
   
-  //  local_data["q"] = q;
-//  local_data["qd"] = qd;
+  //local_data["q"] = q;
+  robot->get_generalized_velocity(Moby::DynamicBody::eSpatial,qd);
+  std::cout << "qd = " << qd << std::endl;
+  //local_data["qd"] = qd;
   
   // Set data into data map:
   for(DataMap::iterator it = data.begin();

@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
   sleep(1);
   
   // this will spin until all posted tasks have completed
-  ioService.run();
+
 
   /*
    * This will stop the ioService processing loop. Any tasks

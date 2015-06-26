@@ -56,9 +56,34 @@ set(SOURCES
             src/Experiment.cpp
             src/Moby.cpp
            )
+         
+#defines        
+add_definitions (-DUSE_OSG)
+find_package (osg)
+find_package (osgViewer)
+find_package (osgDB)
+find_package (osgGA)
+find_package (osgFX)
+find_package (osgUtil)
+find_package (OpenThreads)
+link_directories(${OSG_LIBRARY_DIRS})
+include_directories(${OSG_INCLUDE_DIR})
+
+  add_executable(${PROJECT_NAME} ${SOURCES})
+  
+IF(OSG_FOUND)
+  target_link_libraries (${PROJECT_NAME} ${OSG_LIBRARIES})
+  target_link_libraries (${PROJECT_NAME} ${OSGVIEWER_LIBRARIES})
+  target_link_libraries (${PROJECT_NAME} ${OSGDB_LIBRARIES})
+  target_link_libraries (${PROJECT_NAME} ${OSGGA_LIBRARIES})
+  target_link_libraries (${PROJECT_NAME} ${OPENTHREADS_LIBRARY})
+  target_link_libraries (${PROJECT_NAME} ${OSGUTIL_LIBRARIES})
+  target_link_libraries (${PROJECT_NAME} ${OSGMANIPULATOR_LIBRARIES})
+  target_link_libraries (${PROJECT_NAME} OpenThreads)
+  add_definitions (-DUSE_OSG_DISPLAY)
+ENDIF(OSG_FOUND)
 
          #add_library(${PROJECT_NAME} ${SOURCES})
-add_executable(${PROJECT_NAME} ${SOURCES})
 
 # LibXml2
 IF(LIBXML2_FOUND)

@@ -24,6 +24,8 @@ char *convert(const std::string & s)
   strcpy(pc, s.c_str());
   return pc;
 }
+extern std::string DURATION_INPUT;
+extern std::string STEP_SIZE_INPUT;
 
 void Experiment::sample(unsigned index){
   /*
@@ -31,25 +33,29 @@ void Experiment::sample(unsigned index){
    */
   boost::shared_ptr<Moby::Simulator> sim;
   // run sample
-  std::vector<std::string> moby_options;
-  moby_options.push_back("moby-driver");
+  std::vector<std::string> argvs;
+  argvs.push_back("moby-driver");
   // Max time is 0.3 seconds
-  moby_options.push_back("-mt=0.3");
+  argvs.push_back("-mt="+DURATION_INPUT);
+  argvs.push_back("-s="+STEP_SIZE_INPUT);
   // OSG output last frame
-  moby_options.push_back("-y=osg");
-  moby_options.push_back("-v=-1");
+  argvs.push_back("-y=osg");
+  argvs.push_back("-v=0");
   // XML output last frame
-  moby_options.push_back("-w=-1");
-  moby_options.push_back("model.xml");
+  argvs.push_back("-w=0");
+  argvs.push_back("model.xml");
   std::vector<char*>  argv;
-  std::transform(argv.begin(), argv.end(), std::back_inserter(argv), convert);
+  std::transform(argvs.begin(), argvs.end(), std::back_inserter(argv), convert);
   
   // apply options and INIT moby
   ::init(argv.size(),&argv[0],sim);
   
-  // clean up argv
+ //TODO: clean up argv
   for ( size_t i = 0 ; i < argv.size() ; i++ )
     delete [] argv[i];
+  
+  if(!sim)
+    throw std::runtime_error("Could not start Moby");
   
   // get event driven simulation and dynamics bodies
   boost::shared_ptr<Moby::EventDrivenSimulator>
@@ -162,7 +168,7 @@ void Experiment::init(std::string& parameters){
  
   // Initialize Parameter distributions
   std::vector<std::string> params;
-  std::string delim1 = ";";
+  std::string delim1 = ":";
   boost::split(params, parameters, boost::is_any_of(delim1));
   size_t N = params.size();
   for (size_t i=0;i<N;i++) {
@@ -170,6 +176,7 @@ void Experiment::init(std::string& parameters){
     std::string delim2 = ",";
     boost::split(options, params[i], boost::is_any_of(delim2));
     std::string param_name = options[0];
+    std::cout << param_name << " : " << options.size()-1 << " options" << std::endl;
     double xmin,xmax,mu,sigma;
     if(options.size() == 5){
       xmin = std::atof(options[1].c_str());

@@ -235,14 +235,14 @@ bool step(boost::shared_ptr<Simulator>& s)
   
   // check that maximum number of iterations or maximum time not exceeded
   if (ITER >= MAX_ITER || s->current_time > MAX_TIME){
-    if(PICKLE_IVAL == -1){
+    if(PICKLE_IVAL == 0){
       // write the file (fails silently)
       char buffer[128];
       sprintf(buffer, "driver.out-%08u-%f.xml", ++LAST_PICKLE, s->current_time);
       XMLWriter::serialize_to_xml(std::string(buffer), s);
     }
 #ifdef USE_OSG
-    if(THREED_IVAL == -1){
+    if(THREED_IVAL == 0){
       // write the file (fails silently)
       char buffer[128];
       sprintf(buffer, "driver.out-%08u-%f.%s", ++LAST_3D_WRITTEN, s->current_time, THREED_EXT);

@@ -65,6 +65,11 @@ IF(LIBXML2_FOUND)
   target_link_libraries (${PROJECT_NAME} ${LIBXML2_LIBRARIES})
 ENDIF(LIBXML2_FOUND)
 
-target_link_libraries(${PROJECT_NAME} ${MOBY_LIBRARIES} ${RAVELIN_LIBRARIES} ${BOOST_LIBRARIES} ${BOOST_PROGRAM_OPTIONS_LIBRARY} ${BOOST_THREAD_LIBRARY} gsl boost_program_options boost_system boost_thread)
+target_link_libraries(${PROJECT_NAME} ${MOBY_LIBRARIES} ${RAVELIN_LIBRARIES} ${BOOST_LIBRARIES} gsl boost_program_options)
+if(APPLE OR WIN32)
+  target_link_libraries(${PROJECT_NAME} boost_thread-mt boost_system-mt)
+else()
+  target_link_libraries(${PROJECT_NAME} boost_thread boost_system)
+endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)

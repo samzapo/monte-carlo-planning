@@ -26,7 +26,7 @@ void get_options(int argc, char* argv[]){
   ("threads,j", po::value<unsigned>(&NUM_THREADS)->default_value(1), "set number of worker threads")
   ("samples", po::value<unsigned>(&NUM_SAMPLES)->default_value(0), "set number of samples")
   ("duration", po::value<std::string>(&DURATION_INPUT)->default_value("0.3"), "set duration (virtual time) of each sample")
-  ("step-size", po::value<std::string>(&STEP_SIZE_INPUT)->default_value("0.001"), "set step size (virtual time) of each iteration of the simulatior")
+  ("stepsize,s", po::value<std::string>(&STEP_SIZE_INPUT)->default_value("0.001"), "set step size (virtual time) of each iteration of the simulatior")
   ("parameters", po::value<std::string>(&PARAMETERS)->default_value(""), "set parameters for experiment")
   ;
   

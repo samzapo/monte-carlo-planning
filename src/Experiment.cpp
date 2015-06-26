@@ -6,10 +6,7 @@
 #include <Moby/RCArticulatedBody.h>
 #include <stdio.h>
 #include <string.h>
-
-extern bool init(int argc, char** argv,boost::shared_ptr<Moby::Simulator>& s);
-extern bool step(boost::shared_ptr<Moby::Simulator>& s);
-extern void end();
+#include "Moby.h"
 
 /*
  *  Init and Data collection
@@ -31,6 +28,9 @@ void Experiment::sample(unsigned index){
   /*
    *  Moby Initialization
    */
+  
+  MobyDriver moby_driver;
+  
   boost::shared_ptr<Moby::Simulator> sim;
   // run sample
   std::vector<std::string> argvs;
@@ -48,7 +48,7 @@ void Experiment::sample(unsigned index){
   std::transform(argvs.begin(), argvs.end(), std::back_inserter(argv), convert);
   
   // apply options and INIT moby
-  ::init(argv.size(),&argv[0],sim);
+  moby_driver.init(argv.size(),&argv[0],sim);
   
  //TODO: clean up argv
   for ( size_t i = 0 ; i < argv.size() ; i++ )
@@ -112,7 +112,7 @@ void Experiment::sample(unsigned index){
    */
   bool in_progress = true;
   while (in_progress) {
-    in_progress = step(sim);
+    in_progress = moby_driver.step(sim);
   }
   
   /*
@@ -127,9 +127,6 @@ void Experiment::sample(unsigned index){
       it != data.end();it++){
     it->second[index] = local_data[it->first];
   }
-  
-  // Clean up Moby
-  end();
 }
 
 #include <string>

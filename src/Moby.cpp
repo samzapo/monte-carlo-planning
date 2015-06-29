@@ -183,13 +183,13 @@ bool step(boost::shared_ptr<Simulator>& s, unsigned INDEX)
   
   // output the iteration #
 #ifndef NDEBUG
-  std::cout << "iteration: " << ITER << "  simulation time: " << s->current_time << std::endl;
+//  std::cout << "iteration: " << ITER << "  simulation time: " << s->current_time << std::endl;
 #endif
   
   // only update the graphics if it is necessary; update visualization first
   // in case simulator takes some time to perform first step
-  //  if (UPDATE_GRAPHICS)
-  //    s->update_visualization();
+  if (UPDATE_GRAPHICS)
+    s->update_visualization();
   
   // output the image, if desired
 #ifdef USE_OSG
@@ -201,7 +201,7 @@ bool step(boost::shared_ptr<Simulator>& s, unsigned INDEX)
     {
       // write the file (fails silently)
       char buffer[128];
-      sprintf(buffer, "%08u-%f.%s",INDEX, s->current_time, THREED_EXT);
+      sprintf(buffer, "output-%08u-%f.%s",INDEX, s->current_time, THREED_EXT);
       osgDB::writeNodeFile(*MAIN_GROUP, std::string(buffer));
     }
   }
@@ -215,7 +215,7 @@ bool step(boost::shared_ptr<Simulator>& s, unsigned INDEX)
     {
       // write the file (fails silently)
       char buffer[128];
-      sprintf(buffer, "%08u-%f.xml",INDEX,s->current_time);
+      sprintf(buffer, "output-%08u-%f.xml",INDEX,s->current_time);
       XMLWriter::serialize_to_xml(std::string(buffer), s);
     }
   }
@@ -228,7 +228,7 @@ bool step(boost::shared_ptr<Simulator>& s, unsigned INDEX)
   TOTAL_TIME += total_t;
   
   // output the iteration / stepping rate
-  std::cout << "time to compute last iteration: " << total_t << " (" << TOTAL_TIME / ITER << "s/iter, " << TOTAL_TIME / s->current_time << "s/step)" << std::endl;
+//  std::cout << "time to compute last iteration: " << total_t << " (" << TOTAL_TIME / ITER << "s/iter, " << TOTAL_TIME / s->current_time << "s/step)" << std::endl;
   
   // update the iteration #
   ITER++;
@@ -238,14 +238,14 @@ bool step(boost::shared_ptr<Simulator>& s, unsigned INDEX)
     if(PICKLE_IVAL == 0){
       // write the file (fails silently)
       char buffer[128];
-      sprintf(buffer, "%08u-%f.xml", INDEX, s->current_time);
+      sprintf(buffer, "output-%08u-%f.xml", INDEX, s->current_time);
       XMLWriter::serialize_to_xml(std::string(buffer), s);
     }
 #ifdef USE_OSG
     if(THREED_IVAL == 0){
       // write the file (fails silently)
       char buffer[128];
-      sprintf(buffer, "%08u-%f.%s", INDEX, s->current_time, THREED_EXT);
+      sprintf(buffer, "output-%08u-%f.%s", INDEX, s->current_time, THREED_EXT);
       osgDB::writeNodeFile(*MAIN_GROUP, std::string(buffer));
     }
 #endif

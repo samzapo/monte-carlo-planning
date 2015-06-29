@@ -35,7 +35,7 @@
                       stabilization  skating-stabilization
                       output</id>
     <active type="bool">false                         true            true             true           false
-                        false                         true            false            false
+                        true                         false            false            false
                         false                         false
                         false</active>
     <file type="string">libgamepad.so libwaypoints.so libgait-planner.so  libik-feet.so   libstand-trajectory.so

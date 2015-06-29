@@ -22,6 +22,13 @@ char* const* param_array( std::vector< std::string > params ) {
   return (char* const*) pa;
 }
 
+char *convert(const std::string & s)
+{
+  char *pc = new char[s.size()+1];
+  strcpy(pc, s.c_str());
+  return pc;
+}
+
 //#include <string>
 //#include <stdio.h>
 //
@@ -124,12 +131,18 @@ void Experiment::execute(const char* SAMPLE_BIN, unsigned NUM_SAMPLES, unsigned 
   for (int sample_idx=1;sample_idx<=NUM_SAMPLES; sample_idx++) {
     
     // Generate random set of params for sample in parent process
-    std::stringstream parameter_string;
-    parameter_string << std::setprecision(9);
+    std::stringstream parameter_stream;
+    parameter_stream << std::setprecision(9);
+    bool first = true;
     for(ParamMap::iterator it = parameter_generator.begin();
         it != parameter_generator.end();it++){
-      parameter_string << it->first << "," << it->second->generate() << ";";
+      if(first)
+        parameter_stream << it->first << "," << it->second->generate();
+      else
+        parameter_stream << ":" << it->first << "," << it->second->generate();
+      first = false;
     }
+    std::string parameter_string = parameter_stream.str();
     
     // Run all samples as thir own processes
     pid_t pid = fork();
@@ -141,15 +154,18 @@ void Experiment::execute(const char* SAMPLE_BIN, unsigned NUM_SAMPLES, unsigned 
     if( pid == 0 ) {
       // child process
       pid = getpid();
-      
+
       printf( "Starting Sample (%d) with PID (%d)\n", sample_idx , pid );
       
       sample_argv.push_back("--sample");
       sample_argv.push_back(std::to_string(sample_idx));
       sample_argv.push_back("--parameters");
       // add random set of params for sample to sample_argv (in child)
-      sample_argv.push_back(parameter_string.str());
-      char* const* exec_argv = param_array(sample_argv);
+      sample_argv.push_back(parameter_string);
+      
+      std::vector<char*>  new_argv;
+      std::transform(sample_argv.begin(), sample_argv.end(), std::back_inserter(new_argv), convert);
+      char* const* exec_argv = &new_argv[0];
       
       //    execve( GZSERVER_BIN, exec_argv, exec_envars );
       execv( SAMPLE_BIN, exec_argv );

@@ -10,6 +10,11 @@
 /// All setable params Here
 int main(int argc, char* argv[])
 {
+  printf("Program options:\n");
+  for (int i=0; i<argc; i++) {
+    printf("%s ",argv[i]);
+  }
+  printf("\n");
   /*
    *  Option Parsing
    */
@@ -50,6 +55,7 @@ int main(int argc, char* argv[])
    */
   // Pass arguments to experiment
   
+  Experiment::sample_argv.push_back("sample-exec");
   Experiment::sample_argv.push_back("--duration");
   Experiment::sample_argv.push_back(vm["duration"].as<std::string>());
   Experiment::sample_argv.push_back("--stepsize");

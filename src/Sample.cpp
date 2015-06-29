@@ -32,7 +32,7 @@ void parse_parameters(std::string param_string, std::map<std::string, double>& p
     std::vector<std::string> options;
     const std::string delim2 = ",";
     boost::split(options, params[i], boost::is_any_of(delim2));
-    printf("Sample: %d -- %s is perturbed by: %s", SAMPLE_NUMBER,options[0].c_str(),options[1].c_str());
+    std::cout << "Sample: " << SAMPLE_NUMBER << " -- " << options[0] << " is perturbed by: " << options[1] << std::endl;
     param_map[options[0]] = std::atof(options[1].c_str());
   }
 }
@@ -85,11 +85,11 @@ int main(int argc, char* argv[]){
     step_size = vm["stepsize"].as<std::string>(),
     duration = vm["duration"].as<std::string>();
   
+//  exit(0);
   /*
    *  Moby Initialization
    */
   boost::shared_ptr<Moby::Simulator> sim;
-  
   
   // run sample
   std::vector<std::string> argvs;
@@ -98,11 +98,11 @@ int main(int argc, char* argv[]){
   argvs.push_back("-mt="+duration);
   argvs.push_back("-s="+step_size);
   // OSG output last frame
-  //argvs.push_back("-y=osg");
-  //argvs.push_back("-v=0");
+  argvs.push_back("-y=osg");
+  argvs.push_back("-v=0");
   // XML output last frame
-  //argvs.push_back("-w=0");
-  //  argvs.push_back("-p=/Users/samzapo/Projects/Pacer/build/example/interfaces/libPacerMobyPlugin.so");
+  argvs.push_back("-w=0");
+  argvs.push_back("-p=/Users/samzapo/Projects/Pacer/build/example/interfaces/libPacerMobyPlugin.so");
   argvs.push_back("model.xml");
   //argvs.push_back("start.xml");
   std::vector<char*>  moby_argv;

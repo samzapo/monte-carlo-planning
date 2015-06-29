@@ -43,7 +43,7 @@ void Experiment::sample(unsigned index){
   //argvs.push_back("-v=0");
   // XML output last frame
   //argvs.push_back("-w=0");
-  argvs.push_back("-p=/home/samzapo/Projects/Pacer/build/example/interfaces/libPacerMobyPlugin.so");
+  argvs.push_back("-p=/Users/samzapo/Projects/Pacer/build/example/interfaces/libPacerMobyPlugin.so");
   argvs.push_back("model.xml");
   //argvs.push_back("start.xml");
   std::vector<char*>  argv;

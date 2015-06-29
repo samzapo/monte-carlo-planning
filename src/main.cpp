@@ -51,25 +51,25 @@ int main(int argc, char* argv[])
   /*
    * Create an asio::io_service and a thread_group (thread pool)
    */
-  boost::asio::io_service ioService;
+//  boost::asio::io_service ioService;
   
   /*
    * This will start the ioService processing loop. All tasks
    * assigned with ioService.post() will start executing.
    */
-  boost::asio::io_service::work work(ioService);
-  //boost::optional<boost::asio::io_service::work> work = 
+//  boost::asio::io_service::work work(ioService);
+  //boost::optional<boost::asio::io_service::work> work =
   //  boost::in_place(boost::ref(ioService));
   
   /*
    * This will add 2 threads to the thread pool. (You could just put it in a for loop)
    */
-  boost::thread_group threadpool;
-  for(unsigned i = 0;i<NUM_THREADS;i++){
-    threadpool.create_thread(
-                             boost::bind(&boost::asio::io_service::run, &ioService)
-                             );
-  }
+//  boost::thread_group threadpool;
+//  for(unsigned i = 0;i<NUM_THREADS;i++){
+//    threadpool.create_thread(
+//                             boost::bind(&boost::asio::io_service::run, &ioService)
+//                             );
+//  }
 
   Experiment experiment(NUM_SAMPLES,PARAMETERS);
 
@@ -79,7 +79,8 @@ int main(int argc, char* argv[])
    * More about boost::bind: "http://www.boost.org/doc/libs/1_54_0/libs/bind/bind.html#with_functions"
    */
   for (unsigned i=0; i<NUM_SAMPLES; i++)
-    ioService.post(boost::bind(&Experiment::sample,experiment,i));
+//    ioService.post(boost::bind(&Experiment::sample,experiment,i));
+    experiment.sample(i);
   
   // Let the worker threads notice the posted jobs
   sleep(1);
@@ -91,7 +92,7 @@ int main(int argc, char* argv[])
    * This will stop the ioService processing loop. Any tasks
    * you add behind this point will not execute.
    */
-  ioService.stop();
+//  ioService.stop();
   //work = boost::none;
 
   /*
@@ -99,7 +100,7 @@ int main(int argc, char* argv[])
    * their assigned tasks and 'join' them. Just assume the threads inside
    * the threadpool will be destroyed by this method.
    */
-  threadpool.join_all();
+//  threadpool.join_all();
   
   experiment.export_data();
   

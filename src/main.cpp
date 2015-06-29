@@ -1,108 +1,68 @@
 #include "Experiment.h"
 
 /*
- *    Multithreading code for running tasks
+ *    Multi-process code for running tasks
  *
  *
  */
-#include <boost/asio/io_service.hpp>
-#include <boost/thread/thread.hpp>
 #include <boost/program_options.hpp>
-#include <boost/optional.hpp>
 
 /// All setable params Here
-unsigned NUM_THREADS;
-unsigned NUM_SAMPLES;
-std::string DURATION_INPUT, STEP_SIZE_INPUT, PARAMETERS;
-
-/// Parse Options
-void get_options(int argc, char* argv[]){
-  namespace po = boost::program_options;
-
-  // Declare the supported options.
-  po::options_description desc("Allowed options");
-  desc.add_options()
-  ("help", "produce help message")
-  ("threads,j", po::value<unsigned>(&NUM_THREADS)->default_value(1), "set number of worker threads")
-  ("samples", po::value<unsigned>(&NUM_SAMPLES)->default_value(0), "set number of samples")
-  ("duration", po::value<std::string>(&DURATION_INPUT)->default_value("0.3"), "set duration (virtual time) of each sample")
-  ("stepsize,s", po::value<std::string>(&STEP_SIZE_INPUT)->default_value("0.001"), "set step size (virtual time) of each iteration of the simulatior")
-  ("parameters", po::value<std::string>(&PARAMETERS)->default_value(""), "set parameters for experiment")
-  ;
-  
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
-  po::notify(vm);
-  
-  // Print Help info -- all options descriptions
-  if (vm.count("help")) {
-    std::cout << desc << "\n";
-    exit(1);
-  }
-}
-
 int main(int argc, char* argv[])
 {
   /*
    *  Option Parsing
    */
-  get_options(argc,argv);
-
-  /*
-   * Create an asio::io_service and a thread_group (thread pool)
-   */
-//  boost::asio::io_service ioService;
+  namespace po = boost::program_options;
+  // Declare the supported options.
+  po::options_description desc("Allowed options");
+  desc.add_options()
+  ("help", "produce help message")
+  // EXPERIMENT
+  ("executable", po::value<std::string>()->default_value("sample"), "EXPERIMENT: set sample executable")
+  ("processes,j", po::value<unsigned>()->default_value(1), "EXPERIMENT: set number of simultaneous processes")
+  ("samples", po::value<unsigned>()->default_value(1), "EXPERIMENT: set number of samples")
+  ("parameters", po::value<std::string>()->default_value(""), "EXPERIMENT: set gaussian normal distributions for sample parameters \"name,min,max:...\"  OR \"name,min,max,mean,stddev:...\"")
+  // SAMPLE
+  ("duration", po::value<std::string>()->default_value("0.3"), "SAMPLE: set duration (virtual time) of each sample")
+  ("stepsize,s", po::value<std::string>()->default_value("0.001"), "SAMPLE: set step size (virtual time) of each iteration of the simulatior")
+  ;
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc, argv, desc), vm);
+  po::notify(vm);
+  // Print Help info -- all options descriptions
+  if (vm.count("help")) {
+    std::cout << desc << "\n";
+    exit(1);
+  }
+  
+  std::string
+    param_distribution = vm["parameters"].as<std::string>(),
+    sample_exe = vm["executable"].as<std::string>();
+  
+  
+  unsigned
+    samples = vm["samples"].as<unsigned>(),
+    processes = vm["processes"].as<unsigned>();
   
   /*
-   * This will start the ioService processing loop. All tasks
-   * assigned with ioService.post() will start executing.
+   *  Run Experiment
    */
-//  boost::asio::io_service::work work(ioService);
-  //boost::optional<boost::asio::io_service::work> work =
-  //  boost::in_place(boost::ref(ioService));
+  // Pass arguments to experiment
   
-  /*
-   * This will add 2 threads to the thread pool. (You could just put it in a for loop)
-   */
-//  boost::thread_group threadpool;
-//  for(unsigned i = 0;i<NUM_THREADS;i++){
-//    threadpool.create_thread(
-//                             boost::bind(&boost::asio::io_service::run, &ioService)
-//                             );
-//  }
+  Experiment::sample_argv.push_back("--duration");
+  Experiment::sample_argv.push_back(vm["duration"].as<std::string>());
+  Experiment::sample_argv.push_back("--stepsize");
+  Experiment::sample_argv.push_back(vm["stepsize"].as<std::string>());
 
-  Experiment experiment(NUM_SAMPLES,PARAMETERS);
-
-  /*
-   * Assign Tasks
-   * This will assign tasks to the thread pool.
-   * More about boost::bind: "http://www.boost.org/doc/libs/1_54_0/libs/bind/bind.html#with_functions"
-   */
-  for (unsigned i=0; i<NUM_SAMPLES; i++)
-//    ioService.post(boost::bind(&Experiment::sample,experiment,i));
-    experiment.sample(i);
+  // Set up parameter distributions
+  Experiment::init_parameter_generator(param_distribution);
   
-  // Let the worker threads notice the posted jobs
-  sleep(1);
+  // Execute all samples
+  Experiment::execute(sample_exe.c_str(),samples,processes);
   
-  // this will spin until all posted tasks have completed
+  // Export final data from experiments
+//  Experiment::export_data("experiment.log");
 
-
-  /*
-   * This will stop the ioService processing loop. Any tasks
-   * you add behind this point will not execute.
-   */
-//  ioService.stop();
-  //work = boost::none;
-
-  /*
-   * Will wait till all the treads in the thread pool are finished with
-   * their assigned tasks and 'join' them. Just assume the threads inside
-   * the threadpool will be destroyed by this method.
-   */
-//  threadpool.join_all();
-  
-  experiment.export_data();
-  
   return 0;
 }

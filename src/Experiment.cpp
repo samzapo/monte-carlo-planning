@@ -1,194 +1,60 @@
 #include "Experiment.h"
-/*
- * Moby Control Code
- */
-#include <Moby/EventDrivenSimulator.h>
-#include <Moby/RCArticulatedBody.h>
+
 #include <stdio.h>
 #include <string.h>
-#include "Moby.h"
-
-/*
- *  Init and Data collection
- */
-
-typedef std::map<std::string,std::vector<std::vector<double> > > DataMap;
-typedef std::map<std::string,boost::shared_ptr<Generator> > ParamMap;
-
-char *convert(const std::string & s)
-{
-  char *pc = new char[s.size()+1];
-  strcpy(pc, s.c_str());
-  return pc;
-}
-extern std::string DURATION_INPUT;
-extern std::string STEP_SIZE_INPUT;
-
-void Experiment::sample(unsigned index){
-  /*
-   *  Moby Initialization
-   */
-  
-  MobyDriver moby_driver;
-  
-  boost::shared_ptr<Moby::Simulator> sim;
-  // run sample
-  std::vector<std::string> argvs;
-  argvs.push_back("moby-driver");
-  // Max time is 0.3 seconds
-  argvs.push_back("-mt="+DURATION_INPUT);
-  argvs.push_back("-s="+STEP_SIZE_INPUT);
-  // OSG output last frame
-  //argvs.push_back("-y=osg");
-  //argvs.push_back("-v=0");
-  // XML output last frame
-  //argvs.push_back("-w=0");
-  argvs.push_back("-p=/Users/samzapo/Projects/Pacer/build/example/interfaces/libPacerMobyPlugin.so");
-  argvs.push_back("model.xml");
-  //argvs.push_back("start.xml");
-  std::vector<char*>  argv;
-  std::transform(argvs.begin(), argvs.end(), std::back_inserter(argv), convert);
-  
-  // apply options and INIT moby
-  moby_driver.init(argv.size(),&argv[0],sim);
-  
- //TODO: clean up argv
-  for ( size_t i = 0 ; i < argv.size() ; i++ )
-    delete [] argv[i];
-  
-  if(!sim)
-    throw std::runtime_error("Could not start Moby");
-  
-  // get event driven simulation and dynamics bodies
-  boost::shared_ptr<Moby::EventDrivenSimulator>
-  eds = boost::dynamic_pointer_cast<Moby::EventDrivenSimulator>( sim );
-  
-  Moby::RCArticulatedBodyPtr robot;
-  Moby::RigidBodyPtr environment;
-  
-  BOOST_FOREACH(Moby::DynamicBodyPtr db, eds->get_dynamic_bodies()){
-    if(!robot)
-      robot = boost::dynamic_pointer_cast<Moby::RCArticulatedBody>(db);
-    if(!environment)
-      environment = boost::dynamic_pointer_cast<Moby::RigidBody>(db);
-  }
-  // Fail if moby was inited wrong
-  if(!robot)
-    throw std::runtime_error("Could not find robot");
-  if(!environment)
-    throw std::runtime_error("Could not find environment");
-  
-  /*
-   *  Data Collection Initialization
-   */
-  std::map< std::string,std::vector<double> > local_data;
-  
-  /*
-   *  Parameter Initialization
-   */
-  std::map<std::string,double> params;
-  for(ParamMap::iterator it = parameter_generator.begin();
-      it != parameter_generator.end();it++){
-    params[it->first] = it->second->generate();
-  }
-  
-  /*
-   *  Parameter Application
-   */
-  std::cout << "Sample : " << index << "," << num_samples << std::endl;
-  for(std::map<std::string,double>::iterator it = params.begin();
-      it != params.end();it++){
-    // Reference (key,value) pair
-    const std::string& key = it->first;
-    const double& value = it->second;
-    
-    std::cout << "\t( " << key << " , " << value << " )" << std::endl;
-    
-    if(key.compare("x") == 0){
-      Ravelin::VectorNd q;
-      robot->get_generalized_coordinates(Moby::DynamicBody::eEuler,q);
-      int i = q.rows()- 1 - 4 - 2;
-      q[i] = q[i] + value;
-      robot->set_generalized_coordinates(Moby::DynamicBody::eEuler,q);
-    }
-    else if(key.compare("y") == 0){
-      Ravelin::VectorNd q;
-      robot->get_generalized_coordinates(Moby::DynamicBody::eEuler,q);
-      int i = q.rows()- 1 - 4 - 1;
-      q[i] = q[i] + value;
-      robot->set_generalized_coordinates(Moby::DynamicBody::eEuler,q);
-    }
-    else if(key.compare("z") == 0){
-      Ravelin::VectorNd q;
-      robot->get_generalized_coordinates(Moby::DynamicBody::eEuler,q);
-      int i = q.rows()- 1 - 4;
-      q[i] = q[i] + value;
-      robot->set_generalized_coordinates(Moby::DynamicBody::eEuler,q);
-    }
-  }
-  
-  /*
-   *  Running experiment
-   */
-  bool in_progress = true;
-  while (in_progress) {
-    in_progress = moby_driver.step(sim,index);
-  }
-  
-  /*
-   *  Collecting final data
-   */
- 
-  Ravelin::VectorNd q,qd;
-  robot->get_generalized_coordinates(Moby::DynamicBody::eEuler,q);
-  std::cout << "q = " << q << std::endl;
-  
-  //local_data["q"] = q;
-  robot->get_generalized_velocity(Moby::DynamicBody::eSpatial,qd);
-  std::cout << "qd = " << qd << std::endl;
-  //local_data["qd"] = qd;
-  
-  // Set data into data map:
-  for(DataMap::iterator it = data.begin();
-      it != data.end();it++){
-    it->second[index] = local_data[it->first];
-  }
-}
-
 #include <string>
-#include <stdio.h>
 
-void Experiment::export_data(){
-  FILE * pFile;
-  // Index data
-  for(DataMap::iterator it = data.begin();
-      it != data.end();it++){
-    // Open log file
-    pFile = fopen ((it->first+std::string(".mat")).c_str(),"w");
-    int n = it->second.size();
-    // Index sample
-    for (size_t i = 0; i < n;i++){
-      std::vector<double>& v = it->second[i];
+std::vector<std::string> Experiment::sample_argv;
+std::map<int, unsigned> Experiment::sample_processes;
 
-      int m = v.size();
-      // Index element
-      for (int j = 0; j < m;j++){
-        if(j==0)
-          fprintf(pFile, "%f", v[j]);
-        else
-          fprintf(pFile, " %f", v[j]);
-      }
-      fprintf(pFile, "\n" );
-    }
-    fflush(pFile);
-    fclose (pFile);
+//typedef std::map<std::string,std::vector<std::vector<double> > > DataMap;
+typedef std::map<std::string,boost::shared_ptr<Generator> > ParamMap;
+ParamMap Experiment::parameter_generator;
+
+char* const* param_array( std::vector< std::string > params ) {
+  
+  const char** pa = (const char**)malloc( sizeof(char*) * params.size() + 1 );
+  for( unsigned i = 0; i < params.size(); i++ ) {
+    pa[i] = (const char*)params[i].c_str();
   }
+  pa[ params.size() ] = NULL;
+  
+  return (char* const*) pa;
 }
+
+//#include <string>
+//#include <stdio.h>
+//
+//void Experiment::export_data(){
+//  FILE * pFile;
+//  // Index data
+//  for(DataMap::iterator it = data.begin();
+//      it != data.end();it++){
+//    // Open log file
+//    pFile = fopen ((it->first+std::string(".mat")).c_str(),"w");
+//    int n = it->second.size();
+//    // Index sample
+//    for (size_t i = 0; i < n;i++){
+//      std::vector<double>& v = it->second[i];
+//
+//      int m = v.size();
+//      // Index element
+//      for (int j = 0; j < m;j++){
+//        if(j==0)
+//          fprintf(pFile, "%f", v[j]);
+//        else
+//          fprintf(pFile, " %f", v[j]);
+//      }
+//      fprintf(pFile, "\n" );
+//    }
+//    fflush(pFile);
+//    fclose (pFile);
+//  }
+//}
 
 #include <boost/algorithm/string.hpp>
 
-void Experiment::init(std::string& parameters){
- 
+void Experiment::init_parameter_generator(std::string& parameters){
   // Initialize Parameter distributions
   std::vector<std::string> params;
   std::string delim1 = ":";
@@ -217,8 +83,111 @@ void Experiment::init(std::string& parameters){
       assert(false);
     }
   }
+}
+
+#include <signal.h>
+#include <unistd.h>
+#include <map>
+#include <time.h>
+
+//-----------------------------------------------------------------------------
+// Signal Handling : Simulation process exit detection and
+//-----------------------------------------------------------------------------
+//void gazebo_c::exit_sighandler( int signum ) { // for action.sa_handler
+void Experiment::exit_sighandler( int signum, siginfo_t* info, void* context ) {// for action.sa_sigaction
+                                                                                // update exit condition variable
+  sample_processes[info->si_pid] = 0;
+  //  assert( signum );  // to suppress compiler warning of unused variable
+}
+
+#include <sstream>      // std::stringstream
+#include <iomanip>      // std::setprecision
+
+//-----------------------------------------------------------------------------
+// Multi-core execution : Simulation process spawner
+//-----------------------------------------------------------------------------
+void Experiment::execute(const char* SAMPLE_BIN, unsigned NUM_SAMPLES, unsigned NUM_THREADS) {
+  // install sighandler to detect when gazebo finishes
+  // TODO: make sighandler class more compatible with using a member function
+  struct sigaction action;
+  memset( &action, 0, sizeof(struct sigaction) );
+  //  action.sa_handler = exit_sighandler;
+  action.sa_sigaction = exit_sighandler; // NEW
+  sigaction( SIGCHLD, &action, NULL );
   
-  /// Data collection should be hard-coded
-  data["q"] = std::vector<std::vector< double > >(num_samples);
-  data["qd"] = std::vector<std::vector< double > >(num_samples);
+  printf( "signal handler installed\n" );
+  
+  struct timespec nanosleep_req;
+  struct timespec nanosleep_rem;
+  nanosleep_req.tv_sec = 0;
+  nanosleep_req.tv_nsec = 1;
+  for (int sample_idx=1;sample_idx<=NUM_SAMPLES; sample_idx++) {
+    
+    // Generate random set of params for sample in parent process
+    std::stringstream parameter_string;
+    parameter_string << std::setprecision(9);
+    for(ParamMap::iterator it = parameter_generator.begin();
+        it != parameter_generator.end();it++){
+      parameter_string << it->first << "," << it->second->generate() << ";";
+    }
+    
+    // Run all samples as thir own processes
+    pid_t pid = fork();
+    if( pid < 0 ) {
+      // fork failed
+      // TODO: error handling
+    }
+    
+    if( pid == 0 ) {
+      // child process
+      pid = getpid();
+      
+      printf( "Starting Sample (%d) with PID (%d)\n", sample_idx , pid );
+      
+      sample_argv.push_back("--sample");
+      sample_argv.push_back(std::to_string(sample_idx));
+      sample_argv.push_back("--parameters");
+      // add random set of params for sample to sample_argv (in child)
+      sample_argv.push_back(parameter_string.str());
+      char* const* exec_argv = param_array(sample_argv);
+      
+      //    execve( GZSERVER_BIN, exec_argv, exec_envars );
+      execv( SAMPLE_BIN, exec_argv );
+      
+      // This code should be unreachable unless exec failed
+      perror( "execv" );
+      exit( EXIT_FAILURE );
+      
+    } else {
+      // parent process
+      
+      // Before anything else, register child process in signal map
+      sample_processes[pid] = sample_idx;
+      nanosleep(&nanosleep_req,&nanosleep_rem);
+      
+      // yield for a short while to give gazebo time to spin up
+      printf( "Experiment yielded to start Sample (%d) with PID (%d)\n", sample_idx , pid );
+      
+      while( sample_processes.size() >= NUM_THREADS ) {
+        // Theoretically branch will not be entered; however, detecting EINTR is
+        // not fully reliable and this branch is here to ensure exit if the zmq
+        // approach fails to cause exit.
+        for(std::map<int, unsigned>::iterator it = sample_processes.begin();
+            it != sample_processes.end(); it++){
+          if( it->second == 0 ) {
+            sample_processes.erase(it);
+            printf( "Detected Sample (%d) Exit\n", it->first );
+            break;
+          }
+        }
+      }
+    }
+  }
+  
+  printf( "Experiment Complete\n" );
+  
+  // uninstall sighandler
+  //    action.sa_handler = SIG_DFL;
+  action.sa_sigaction = NULL;  // might not be SIG_DFL
+  sigaction( SIGCHLD, &action, NULL );
 }

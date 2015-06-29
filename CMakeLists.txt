@@ -13,7 +13,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeModules)
 
 #find BOOST libraries
 set(Boost_ADDITIONAL_VERSIONS "1.55.0" "1.56.0")
-find_package(Boost COMPONENTS program_options thread REQUIRED)
+find_package(Boost COMPONENTS program_options REQUIRED)
 link_directories(${BOOST_LIBRARY_DIRS})
 include_directories(${BOOST_INCLUDE_DIR})
 
@@ -51,9 +51,13 @@ link_directories(
                   /usr/local/lib
                   )
 
-set(SOURCES
+set(EXPERIMENT_SOURCES
             src/main.cpp
             src/Experiment.cpp
+           )
+
+set(SAMPLE_SOURCES
+            src/Sample.cpp
             src/Moby.cpp
            )
          
@@ -69,17 +73,18 @@ find_package (OpenThreads)
 link_directories(${OSG_LIBRARY_DIRS})
 include_directories(${OSG_INCLUDE_DIR})
 
-  add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${EXPERIMENT_SOURCES})
+add_executable(sample.bin ${SAMPLE_SOURCES})
   
 IF(OSG_FOUND)
-  target_link_libraries (${PROJECT_NAME} ${OSG_LIBRARIES})
-  target_link_libraries (${PROJECT_NAME} ${OSGVIEWER_LIBRARIES})
-  target_link_libraries (${PROJECT_NAME} ${OSGDB_LIBRARIES})
-  target_link_libraries (${PROJECT_NAME} ${OSGGA_LIBRARIES})
-  target_link_libraries (${PROJECT_NAME} ${OPENTHREADS_LIBRARY})
-  target_link_libraries (${PROJECT_NAME} ${OSGUTIL_LIBRARIES})
-  target_link_libraries (${PROJECT_NAME} ${OSGMANIPULATOR_LIBRARIES})
-  target_link_libraries (${PROJECT_NAME} OpenThreads)
+  target_link_libraries (sample.bin ${OSG_LIBRARIES})
+  target_link_libraries (sample.bin ${OSGVIEWER_LIBRARIES})
+  target_link_libraries (sample.bin ${OSGDB_LIBRARIES})
+  target_link_libraries (sample.bin ${OSGGA_LIBRARIES})
+  target_link_libraries (sample.bin ${OPENTHREADS_LIBRARY})
+  target_link_libraries (sample.bin ${OSGUTIL_LIBRARIES})
+  target_link_libraries (sample.bin ${OSGMANIPULATOR_LIBRARIES})
+  target_link_libraries (sample.bin OpenThreads)
   add_definitions (-DUSE_OSG_DISPLAY)
 ENDIF(OSG_FOUND)
 
@@ -87,14 +92,8 @@ ENDIF(OSG_FOUND)
 
 # LibXml2
 IF(LIBXML2_FOUND)
-  target_link_libraries (${PROJECT_NAME} ${LIBXML2_LIBRARIES})
+  target_link_libraries (sample.bin ${LIBXML2_LIBRARIES})
 ENDIF(LIBXML2_FOUND)
 
 target_link_libraries(${PROJECT_NAME} ${MOBY_LIBRARIES} ${RAVELIN_LIBRARIES} ${BOOST_LIBRARIES} gsl boost_program_options)
-if(APPLE OR WIN32)
-  target_link_libraries(${PROJECT_NAME} boost_thread-mt boost_system-mt)
-else()
-  target_link_libraries(${PROJECT_NAME} boost_thread boost_system)
-endif()
-
-set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+target_link_libraries(sample.bin ${MOBY_LIBRARIES} ${RAVELIN_LIBRARIES} ${BOOST_LIBRARIES} gsl boost_program_options)

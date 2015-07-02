@@ -11,22 +11,15 @@ std::map<int, unsigned> Experiment::sample_processes;
 typedef std::map<std::string,boost::shared_ptr<Generator> > ParamMap;
 ParamMap Experiment::parameter_generator;
 
-char* const* param_array( std::vector< std::string > params ) {
+char* const* param_array( std::vector< std::string >& params ) {
   
-  const char** pa = (const char**)malloc( sizeof(char*) * params.size() + 1 );
+  const char** pa = (const char**)malloc( sizeof(char*) * (params.size() + 1) );
   for( unsigned i = 0; i < params.size(); i++ ) {
     pa[i] = (const char*)params[i].c_str();
   }
   pa[ params.size() ] = NULL;
   
   return (char* const*) pa;
-}
-
-char *convert(const std::string & s)
-{
-  char *pc = new char[s.size()+1];
-  strcpy(pc, s.c_str());
-  return pc;
 }
 
 //#include <string>
@@ -113,7 +106,7 @@ void Experiment::exit_sighandler( int signum, siginfo_t* info, void* context ) {
 //-----------------------------------------------------------------------------
 // Multi-core execution : Simulation process spawner
 //-----------------------------------------------------------------------------
-void Experiment::execute(const char* SAMPLE_BIN, unsigned NUM_SAMPLES, unsigned NUM_THREADS) {
+void Experiment::execute(std::string SAMPLE_BIN, unsigned NUM_SAMPLES, unsigned NUM_THREADS) {
   // install sighandler to detect when gazebo finishes
   // TODO: make sighandler class more compatible with using a member function
   struct sigaction action;
@@ -163,12 +156,10 @@ void Experiment::execute(const char* SAMPLE_BIN, unsigned NUM_SAMPLES, unsigned 
       // add random set of params for sample to sample_argv (in child)
       sample_argv.push_back(parameter_string);
       
-      std::vector<char*>  new_argv;
-      std::transform(sample_argv.begin(), sample_argv.end(), std::back_inserter(new_argv), convert);
-      char* const* exec_argv = &new_argv[0];
+      char* const* exec_argv = param_array(sample_argv);
       
       //    execve( GZSERVER_BIN, exec_argv, exec_envars );
-      execv( SAMPLE_BIN, exec_argv );
+      execv( SAMPLE_BIN.c_str(), exec_argv );
       
       // This code should be unreachable unless exec failed
       perror( "execv" );

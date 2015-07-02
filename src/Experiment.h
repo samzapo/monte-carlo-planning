@@ -19,7 +19,7 @@ public:
   
   // FNS
   static
-  void execute(const char* SAMPLE_BIN = "sample", unsigned NUM_SAMPLES = 1, unsigned NUM_THREADS = 1);
+  void execute(std::string SAMPLE_BIN = "sample", unsigned NUM_SAMPLES = 1, unsigned NUM_THREADS = 1);
   
   static
   void init_parameter_generator(std::string& parameters);

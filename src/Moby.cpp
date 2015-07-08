@@ -208,17 +208,17 @@ bool step(boost::shared_ptr<Simulator>& s, unsigned INDEX)
 #endif
   
   // serialize the simulation, if desired
-  if (PICKLE_IVAL > 0)
-  {
-    // determine at what iteration nearest pickle would be output
-    if (ITER % PICKLE_IVAL == 0)
-    {
-      // write the file (fails silently)
-      char buffer[128];
-      sprintf(buffer, "output-%08u-%f.xml",INDEX,s->current_time);
-      XMLWriter::serialize_to_xml(std::string(buffer), s);
-    }
-  }
+//  if (PICKLE_IVAL > 0)
+//  {
+//    // determine at what iteration nearest pickle would be output
+//    if (ITER % PICKLE_IVAL == 0)
+//    {
+//      // write the file (fails silently)
+//      char buffer[128];
+//      sprintf(buffer, "output-%08u-%f.xml",INDEX,s->current_time);
+//      XMLWriter::serialize_to_xml(std::string(buffer), s);
+//    }
+//  }
   
   // step the simulator
   clock_t pre_sim_t = clock();
@@ -235,12 +235,12 @@ bool step(boost::shared_ptr<Simulator>& s, unsigned INDEX)
   
   // check that maximum number of iterations or maximum time not exceeded
   if (ITER >= MAX_ITER || s->current_time > MAX_TIME){
-    if(PICKLE_IVAL == 0){
-      // write the file (fails silently)
-      char buffer[128];
-      sprintf(buffer, "output-%08u-%f.xml", INDEX, s->current_time);
-      XMLWriter::serialize_to_xml(std::string(buffer), s);
-    }
+//    if(PICKLE_IVAL == 0){
+//      // write the file (fails silently)
+//      char buffer[128];
+//      sprintf(buffer, "output-%08u-%f.xml", INDEX, s->current_time);
+//      XMLWriter::serialize_to_xml(std::string(buffer), s);
+//    }
 #ifdef USE_OSG
     if(THREED_IVAL == 0){
       // write the file (fails silently)

@@ -101,10 +101,10 @@ int main(int argc, char* argv[]){
   argvs.push_back("-y=osg");
   argvs.push_back("-v=0");
   // XML output last frame
-  argvs.push_back("-w=0");
+//  argvs.push_back("-w=0");
   argvs.push_back("-p=/Users/samzapo/Projects/Pacer/build/example/interfaces/libPacerMobyPlugin.so");
   argvs.push_back("model.xml");
-  //argvs.push_back("start.xml");
+//  argvs.push_back("start.xml");
   std::vector<char*>  moby_argv;
   std::transform(argvs.begin(), argvs.end(), std::back_inserter(moby_argv), convert);
   
@@ -119,13 +119,13 @@ int main(int argc, char* argv[]){
     throw std::runtime_error("Could not start Moby");
   
   // get event driven simulation and dynamics bodies
-  boost::shared_ptr<Moby::EventDrivenSimulator>
-  eds = boost::dynamic_pointer_cast<Moby::EventDrivenSimulator>( sim );
+  //boost::shared_ptr<Moby::EventDrivenSimulator>
+  //eds = boost::dynamic_pointer_cast<Moby::EventDrivenSimulator>( sim );
   
   Moby::RCArticulatedBodyPtr robot;
   Moby::RigidBodyPtr environment;
   
-  BOOST_FOREACH(Moby::DynamicBodyPtr db, eds->get_dynamic_bodies()){
+  BOOST_FOREACH(Moby::DynamicBodyPtr db, sim->get_dynamic_bodies()){
     if(!robot)
       robot = boost::dynamic_pointer_cast<Moby::RCArticulatedBody>(db);
     if(!environment)

@@ -1,5 +1,7 @@
 #include <Moby/EventDrivenSimulator.h>
 #include <Moby/RCArticulatedBody.h>
+#include <Ravelin/Transform3d.h>
+#include <Ravelin/Vector3d.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -34,6 +36,20 @@ void parse_parameters(std::string param_string, std::map<std::string, double>& p
     boost::split(options, params[i], boost::is_any_of(delim2));
     std::cout << "Sample: " << SAMPLE_NUMBER << " -- " << options[0] << " is perturbed by: " << options[1] << std::endl;
     param_map[options[0]] = std::atof(options[1].c_str());
+  }
+}
+
+void apply_transform(Ravelin::Transform3d& T,const std::set<Moby::JointPtr>& outer_joints){
+  BOOST_FOREACH(Moby::JointPtr jp, outer_joints){
+    Moby::RigidBodyPtr rb = jp->get_outboard_link();
+    rb->set_pose(T.transform(*(rb->get_pose().get())));
+//    jp->set_pose(T.transform(*(jp->get_pose().get())));
+//    jp->set_location(
+//                     Ravelin::Vector3d(0,0,0,jp->get_pose()),
+//                     jp->get_inboard_link(),
+//                     jp->get_outboard_link());
+    apply_transform(T,rb->get_outer_joints());
+    
   }
 }
 
@@ -169,7 +185,63 @@ int main(int argc, char* argv[]){
       int i = q.rows()- 1 - 4;
       q[i] = q[i] + value;
       robot->set_generalized_coordinates(Moby::DynamicBody::eEuler,q);
+    } else if(key.find("mass") == 0){
+      std::vector<std::string> parts;
+      boost::split(parts, key, boost::is_any_of("."));
+
+      // Perturb mass of robot link by scaling by parameter
+      BOOST_FOREACH(Moby::RigidBodyPtr rb, robot->get_links()){
+        if(parts[1].compare(rb->id) == 0){
+//          printf("Sample %d PID: %d: Link %s mass *= %f\n",SAMPLE_NUMBER, pid,rb->id.c_str(),(1.0+value));
+          Ravelin::SpatialRBInertiad Jm(rb->get_inertia());
+          Jm.m *= (1.0 + value);
+          rb->set_inertia(Jm);
+          break;
+        }
+      }
+    } else if(key.find("link-length") == 0){
+      std::vector<std::string> parts;
+      boost::split(parts, key, boost::is_any_of("."));
+      
+      // Get legs
+      const std::set<Moby::JointPtr>& legs = robot->get_base_link()->get_outer_joints();
+      // For each leg
+      BOOST_FOREACH(Moby::RigidBodyPtr rb, robot->get_links()){
+        // If this is the link we have to edit
+        if(parts[1].compare(rb->id) == 0){
+//          printf("Sample %d PID: %d: Link %s length += %f\n",SAMPLE_NUMBER, pid,rb->id.c_str(),(value));
+
+          //TRANSFORM3 calc_relative_pose(boost::shared_ptr<const POSE3> source, boost::shared_ptr<const POSE3> target)
+          Moby::JointPtr jp = rb->get_inner_joint_explicit();
+          boost::shared_ptr<Ravelin::Pose3d> rb_original_pose(new Ravelin::Pose3d(rb->get_pose()));
+          rb_original_pose->update_relative_pose(rb->get_pose()->rpose);
+
+//          std::cout << "Before: " << *(rb_original_pose.get()) << std::endl;
+          // Update transform in link forward direction
+          Ravelin::Origin3d x = rb_original_pose->x;
+          x.normalize();
+          rb_original_pose->x += (x*value);
+//          std::cout << "After: " <<  *(rb_original_pose.get()) << std::endl;
+          rb->set_pose(*(rb_original_pose.get()));
+
+          // Update transforms
+          jp->Ravelin::Jointd::set_location(jp->get_location());
+          // Apply new transform to all children (recursive)
+//          apply_transform(T,rb->get_outer_joints());
+          robot->update_link_poses();
+          break;
+        }
+      }
     }
+  }
+  
+  {
+    Ravelin::VectorNd q,qd;
+    robot->get_generalized_coordinates(Moby::DynamicBody::eEuler,q);
+    std::cout << "q1 = " << q << std::endl;
+    
+    robot->get_generalized_velocity(Moby::DynamicBody::eSpatial,qd);
+    std::cout << "qd1 = " << qd << std::endl;
   }
   
   /*
@@ -184,15 +256,14 @@ int main(int argc, char* argv[]){
    *  Collecting final data
    */
 //  std::map< std::string,std::vector<double> > local_data;
-  
-  Ravelin::VectorNd q,qd;
-  robot->get_generalized_coordinates(Moby::DynamicBody::eEuler,q);
-  std::cout << "q = " << q << std::endl;
-  
-  //local_data["q"] = q;
-  robot->get_generalized_velocity(Moby::DynamicBody::eSpatial,qd);
-  std::cout << "qd = " << qd << std::endl;
-  //local_data["qd"] = qd;
+  {
+    Ravelin::VectorNd q,qd;
+    robot->get_generalized_coordinates(Moby::DynamicBody::eEuler,q);
+    std::cout << "q2 = " << q << std::endl;
+    
+    robot->get_generalized_velocity(Moby::DynamicBody::eSpatial,qd);
+    std::cout << "qd2 = " << qd << std::endl;
+  }
   
   // Clean up Moby
   end();

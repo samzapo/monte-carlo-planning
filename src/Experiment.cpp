@@ -176,6 +176,7 @@ void Experiment::execute(std::string SAMPLE_BIN, unsigned NUM_SAMPLES, unsigned 
       printf( "Experiment yielded to start Sample (%d) with PID (%d)\n", sample_idx , pid );
       
       while( sample_processes.size() >= NUM_THREADS ) {
+        usleep(10);
         // Theoretically branch will not be entered; however, detecting EINTR is
         // not fully reliable and this branch is here to ensure exit if the zmq
         // approach fails to cause exit.

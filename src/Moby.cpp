@@ -234,7 +234,7 @@ bool step(boost::shared_ptr<Simulator>& s, unsigned INDEX)
   ITER++;
   
   // check that maximum number of iterations or maximum time not exceeded
-  if (ITER >= MAX_ITER || s->current_time > MAX_TIME){
+  if (ITER >= MAX_ITER || s->current_time > MAX_TIME || ITER == 1){
 //    if(PICKLE_IVAL == 0){
 //      // write the file (fails silently)
 //      char buffer[128];
@@ -249,7 +249,8 @@ bool step(boost::shared_ptr<Simulator>& s, unsigned INDEX)
       osgDB::writeNodeFile(*MAIN_GROUP, std::string(buffer));
     }
 #endif
-    return false;
+    if (ITER >= MAX_ITER || s->current_time > MAX_TIME)
+      return false;
   }
 #ifdef USE_OSG
 //  usleep(DYNAMICS_FREQ);

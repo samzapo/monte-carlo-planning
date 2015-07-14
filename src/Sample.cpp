@@ -118,7 +118,7 @@ int main(int argc, char* argv[]){
   argvs.push_back("-v=0");
   // XML output last frame
 //  argvs.push_back("-w=0");
-  argvs.push_back("-p=/Users/samzapo/Projects/Pacer/build/example/interfaces/libPacerMobyPlugin.so");
+  argvs.push_back("-p=/Users/samzapo/Projects/Pacer-experimental/debug/example/interfaces/libPacerMobyPlugin.so");
   argvs.push_back("model.xml");
 //  argvs.push_back("start.xml");
   std::vector<char*>  moby_argv;

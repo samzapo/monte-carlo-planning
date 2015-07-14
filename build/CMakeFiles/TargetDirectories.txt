@@ -1,2 +1,0 @@
-/Volumes/Macintosh HD/Projects/MonteCarlo/build/CMakeFiles/Virtualization.dir
-/Volumes/Macintosh HD/Projects/MonteCarlo/build/CMakeFiles/sample.bin.dir

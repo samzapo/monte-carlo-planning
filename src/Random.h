@@ -46,14 +46,15 @@ public:
 // free the random number generator
 
 /// Gets the current time (as a floating-point number)
+static const double usec_sec = 1000000;
  static double get_current_time()
 {
-    //const double MICROSEC = 1.0/1000000;
+    //const double MICROSEC = 1.0/usec_sec;
     timeval t;
     gettimeofday(&t, NULL);
     //double stime = (double) t.tv_sec + (double) t.tv_usec * MICROSEC;
-    //unsigned long utime = stime * 1000000;
-    return (unsigned long) t.tv_sec * 1000000 + (unsigned long) t.tv_usec;
+    //unsigned long utime = stime * usec_sec;
+    return (unsigned long) t.tv_sec * usec_sec + (unsigned long) t.tv_usec;
 }
 
 

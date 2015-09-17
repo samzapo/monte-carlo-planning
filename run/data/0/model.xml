@@ -42,7 +42,7 @@
 
      <Heightmap id="ground-primitive1" filename="heightmap.dat" width="1" depth="1" rpy="1.5708 0 0" />
 <RigidBody id="GROUND2" color="0.6 0.6 0.6 0" enabled="false"
-  position="1.0 0 0.0"
+  position="1.25 0 0.0"
   visualization-id="ground-primitive1"
   compliant="false">
     <CollisionGeometry primitive-id="ground-primitive1" />

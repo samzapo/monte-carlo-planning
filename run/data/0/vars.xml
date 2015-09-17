@@ -1,5 +1,5 @@
   <XML>
-  <logging type="string">ERROR</logging>
+  <logging type="string">DEBUG1</logging>
   
   <robot-model type="string">links/model.sdf</robot-model>
   <real-time-factor type="double">1</real-time-factor>
@@ -40,7 +40,7 @@
     <kinematic type="bool">false</kinematic>
 
     <base>
-      <x type="double"> 0 0.0 0.25 0 0 0</x>
+      <x type="double"> 0 -0.1 0.25 0 0 0</x>
       <xd type="double">0 0 0   0 0 0</xd>
     </base>
 
@@ -61,6 +61,11 @@
   </init>
 
   <plugins type="string vector">
+    plugin-scheduler
+  </plugins>
+  
+  <!--
+   OTHER PLUGINS:
       center-of-mass
       waypoints
       end-effectors
@@ -68,10 +73,6 @@
       gait-planner
       ik-feet
       error-check
-  </plugins>
-  
-  <!--
-   OTHER PLUGINS:
    
    stand-trajectory
    joint-PID-controller
@@ -84,6 +85,51 @@
    -->
   
   <!-- =================== PLUGIN DESCRIPTIONS ==================== -->
+  <plugin-scheduler>
+    <file type="string">libplugin-scheduler.so</file>
+    <real-time-factor type="double">1</real-time-factor>
+    <priority type="double">0</priority>
+    <relative-start-time type="bool">true</relative-start-time>
+    <events type="string vector">init jump</events>
+    <!--  PERSISTENT    -->
+    <init>
+      <time type="double">0</time>
+      <open type="string vector">
+        center-of-mass
+        end-effectors
+        error-check
+        joint-PID-controller
+        stand-trajectory
+      </open>
+    </init>
+    <!--   WALK   -->
+    
+    <jump>
+      <time type="double">0.15</time>
+      <open type="string vector">
+        jump-to
+      </open>
+      <close type="string vector">
+        stand-trajectory
+      </close>
+    </jump>
+  </plugin-scheduler>
+  
+  <exit>
+    <file type="string">libexit.so</file>
+    <real-time-factor type="double">1</real-time-factor>
+    <priority type="double">0</priority>
+  </exit>
+
+  <jump-to>
+    <file type="string">libjump-to.so</file>
+    <real-time-factor type="double">1</real-time-factor>
+    <priority type="double">5</priority>
+    <angle-of-elevation type="double">0.78</angle-of-elevation>
+    <heading type="double">0</heading>
+    <range type="double">1</range>
+    <duration type="double">0.25</duration>
+  </jump-to>
   <plugin-template>
     <file type="string">libplugin-template.so</file>
       <real-time-factor type="double">1</real-time-factor>
@@ -215,8 +261,9 @@
   
   <stand-trajectory>
     <file type="string">libstand-trajectory.so</file>
-     <real-time-factor type="double">1</real-time-factor>
-     <priority type="double">1</priority>
+    <real-time-factor type="double">1</real-time-factor>
+    <priority type="double">3</priority>
+    <time-to-pose type="double">0</time-to-pose>
   </stand-trajectory>
   
   <gait-planner>

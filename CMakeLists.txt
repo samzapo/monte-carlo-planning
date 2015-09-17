@@ -97,3 +97,7 @@ ENDIF(LIBXML2_FOUND)
 
 target_link_libraries(${PROJECT_NAME} ${MOBY_LIBRARIES} ${RAVELIN_LIBRARIES} ${BOOST_LIBRARIES} gsl boost_program_options)
 target_link_libraries(sample.bin ${MOBY_LIBRARIES} ${RAVELIN_LIBRARIES} ${BOOST_LIBRARIES} gsl boost_program_options)
+
+# Setup configuration file
+get_filename_component(MOBY_LIBRARY_DIR ${MOBY_LIBRARY} PATH)
+configure_file(${CMAKE_SOURCE_DIR}/CMakeModules/setup.sh.in ${CMAKE_BINARY_DIR}/setup.sh @ONLY)

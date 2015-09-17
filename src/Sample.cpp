@@ -96,7 +96,9 @@ int main(int argc, char* argv[]){
     printf("Sample %d PID: %d did not get a set of parameters",SAMPLE_NUMBER, pid);
     exit(1);
   }
-  
+
+  std::string pacer_interface_path(getenv ("PACER_INTERFACE_PATH"));
+
   std::string
     step_size = vm["stepsize"].as<std::string>(),
     duration = vm["duration"].as<std::string>();
@@ -118,7 +120,7 @@ int main(int argc, char* argv[]){
   argvs.push_back("-v=0");
   // XML output last frame
 //  argvs.push_back("-w=0");
-  argvs.push_back("-p=/Users/samzapo/Projects/Pacer-experimental/debug/example/interfaces/libPacerMobyPlugin.so");
+  argvs.push_back("-p="+pacer_interface_path+"/libPacerMobyPlugin.so");
   argvs.push_back("model.xml");
 //  argvs.push_back("start.xml");
   std::vector<char*>  moby_argv;

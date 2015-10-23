@@ -256,7 +256,7 @@ void apply_simulator_options(int argc, char* argv[], shared_ptr<Simulator>& sim)
   argvs.push_back("-s="+step_size);
   // OSG output last frame
   argvs.push_back("-y=osg");
-  argvs.push_back("-v=0");
+//  argvs.push_back("-v=0");
   // XML output last frame
   //  argvs.push_back("-w=0");
     argvs.push_back("-r");

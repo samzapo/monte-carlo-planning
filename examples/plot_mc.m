@@ -1,4 +1,4 @@
-dir = 'data/2/'
+dir = 'jump-heightmap/'
 x1 = dlmread([dir,'data1.mat'],',');
 x2 = dlmread([dir,'data2.mat'],',');
 

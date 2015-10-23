@@ -1,5 +1,5 @@
   <XML>
-  <logging type="string">DEBUG1</logging>
+  <logging type="string">ERROR</logging>
   
   <robot-model type="string">links/model.sdf</robot-model>
   <real-time-factor type="double">1</real-time-factor>
@@ -40,7 +40,7 @@
     <kinematic type="bool">false</kinematic>
 
     <base>
-      <x type="double"> 0 -0.1 0.25 0 0 0</x>
+      <x type="double"> 0 -0.1 0.3 0 0 0</x>
       <xd type="double">0 0 0   0 0 0</xd>
     </base>
 
@@ -108,9 +108,11 @@
       <time type="double">0.15</time>
       <open type="string vector">
         jump-to
+      eef-PID-controller
       </open>
       <close type="string vector">
         stand-trajectory
+        joint-PID-controller
       </close>
     </jump>
   </plugin-scheduler>
@@ -127,9 +129,10 @@
     <priority type="double">5</priority>
     <angle-of-elevation type="double">0.78</angle-of-elevation>
     <heading type="double">0</heading>
-    <range type="double">1</range>
-    <duration type="double">0.25</duration>
+    <range type="double">0.5</range>
+    <duration type="double">0.5</duration>
   </jump-to>
+  
   <plugin-template>
     <file type="string">libplugin-template.so</file>
       <real-time-factor type="double">1</real-time-factor>
@@ -317,14 +320,14 @@
   
   <ik-feet>
     <file type="string">libik-feet.so</file>
-    <priority type="double">2</priority>
+    <priority type="double">8</priority>
     <real-time-factor type="double">1</real-time-factor>
     <abs-err-tolerance type="double">1.5e-3</abs-err-tolerance>
   </ik-feet>
   
   <joint-PID-controller>
     <file type="string">libjoint-PID-controller.so</file>
-    <priority type="double">4</priority>
+    <priority type="double">9</priority>
     <real-time-factor type="double">1</real-time-factor>
     <acceleration type="bool">false</acceleration>
     <!-- Gains are for the q of joint ids respectively -->
@@ -337,7 +340,7 @@
 
 <joint-PID-controller-accel>
   <file type="string">libjoint-PID-controller.so</file>
-  <priority type="double">3</priority>
+  <priority type="double">9</priority>
   <real-time-factor type="double">1</real-time-factor>
   <acceleration type="bool">true</acceleration>
   <!-- Gains are for the q of joint ids respectively -->
@@ -350,7 +353,7 @@
 
   <eef-PID-controller>
     <file type="string">libeef-PID-controller.so</file>
-    <priority type="double">4</priority>
+    <priority type="double">9</priority>
     <real-time-factor type="double">1</real-time-factor>
     <id type="string">LF_FOOT           RF_FOOT             LH_FOOT             RH_FOOT</id>
     <gains>
@@ -362,7 +365,7 @@
   
   <eef-PID-controller-accel>
     <file type="string">libeef-PID-controller.so</file>
-    <priority type="double">4</priority>
+    <priority type="double">9</priority>
     <real-time-factor type="double">1</real-time-factor>
     <acceleration type="bool">true</acceleration>
     <id type="string">LF_FOOT           RF_FOOT             LH_FOOT             RH_FOOT</id>
@@ -377,7 +380,7 @@
 
   <idyn-controller>
     <file type="string">libinverse-dynamics.so</file>
-    <priority type="double">4</priority>
+    <priority type="double">10</priority>
     <real-time-factor type="double">1</real-time-factor>
     <dt type="double">0</dt>
     <alpha type="double">1</alpha>

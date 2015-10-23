@@ -1,74 +1,49 @@
-#include "Experiment.h"
-
 /*
  *    Multi-process code for running tasks
  *
  *
  */
-#include <boost/program_options.hpp>
+#include <vector>
+#include <stdio.h>
+#include <string>
+
+namespace Experiment{
+  extern void execute(const char* SAMPLE_BIN, unsigned NUM_SAMPLES, unsigned NUM_THREADS);
+  extern std::vector<std::string> SAMPLE_ARGV;
+  extern void init_parameter_generator(const char* path);
+
+};
 
 /// All setable params Here
 int main(int argc, char* argv[])
 {
-  printf("Program options:\n");
-  for (int i=0; i<argc; i++) {
-    printf("%s ",argv[i]);
-  }
-  printf("\n");
-  /*
-   *  Option Parsing
-   */
-  namespace po = boost::program_options;
-  // Declare the supported options.
-  po::options_description desc("Allowed options");
-  desc.add_options()
-  ("help", "produce help message")
-  // EXPERIMENT
-  ("executable", po::value<std::string>()->default_value("sample"), "EXPERIMENT: set sample executable")
-  ("processes,j", po::value<unsigned>()->default_value(1), "EXPERIMENT: set number of simultaneous processes")
-  ("samples", po::value<unsigned>()->default_value(1), "EXPERIMENT: set number of samples")
-  ("parameters", po::value<std::string>()->default_value(""), "EXPERIMENT: set gaussian normal distributions for sample parameters \"name,min,max:...\"  OR \"name,min,max,mean,stddev:...\"")
-  // SAMPLE
-  ("duration", po::value<std::string>()->default_value("0.3"), "SAMPLE: set duration (virtual time) of each sample")
-  ("stepsize,s", po::value<std::string>()->default_value("0.001"), "SAMPLE: set step size (virtual time) of each iteration of the simulatior")
-  ;
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc, argv, desc), vm);
-  po::notify(vm);
-  // Print Help info -- all options descriptions
-  if (vm.count("help")) {
-    std::cout << desc << "\n";
-    exit(1);
-  }
+  printf("Montecarlo test:\n");
   
-  std::string
-    param_distribution = vm["parameters"].as<std::string>(),
-    sample_exe = vm["executable"].as<std::string>();
+  ////////////////// INIT Experiment /////////////////////
+
+  // Name the executable to be processed
+  const char* executable = "sample.bin";
   
-  
-  unsigned
-    samples = vm["samples"].as<unsigned>(),
-    processes = vm["processes"].as<unsigned>();
-  
-  /*
-   *  Run Experiment
-   */
   // Pass arguments to experiment
-  
-  Experiment::sample_argv.push_back("sample-exec");
-  Experiment::sample_argv.push_back("--duration");
-  Experiment::sample_argv.push_back(vm["duration"].as<std::string>());
-  Experiment::sample_argv.push_back("--stepsize");
-  Experiment::sample_argv.push_back(vm["stepsize"].as<std::string>());
+  Experiment::SAMPLE_ARGV.push_back(std::string(executable));
+  Experiment::SAMPLE_ARGV.push_back("--duration");
+  Experiment::SAMPLE_ARGV.push_back("0.5");
+  Experiment::SAMPLE_ARGV.push_back("--stepsize");
+  Experiment::SAMPLE_ARGV.push_back("0.001");
 
-  // Set up parameter distributions
-  Experiment::init_parameter_generator(param_distribution);
-  
-  // Execute all samples
-  Experiment::execute(sample_exe.c_str(),samples,processes);
-  
-  // Export final data from experiments
-//  Experiment::export_data("experiment.log");
+  // Set up parameter distributions from XML file
+  Experiment::init_parameter_generator("parameters.xml");
 
+  // Process "S" samples
+  // using "P" processes simultaneously
+  unsigned S = 8, P = 8;
+
+  ////////////////// RUN Experiment /////////////////////
+  
+  // Execute file "executable" relative to working directory
+  // Processing "S" samples
+  // using "P" processes simultaneously
+  Experiment::execute(executable,S,P);
+  
   return 0;
 }
